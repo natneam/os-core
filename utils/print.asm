@@ -13,16 +13,16 @@ print_string:
   .end:
     ret
 
-print_hex_16:
+print_hex:
     mov si, HEX_OUT
     inc si
     inc si
     mov cx, 4
 
 .loop:
-    rol bx, 4
+    rol dx, 4
 
-    mov al, bl
+    mov al, dl
     and al, 0x0F
 
     add al, '0'
@@ -43,4 +43,4 @@ print_hex_16:
     ret
 
 HEX_OUT:
-  db '0x9999', 0
+  db '0x0000', 0
