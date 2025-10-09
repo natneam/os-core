@@ -23,7 +23,7 @@ call print_hex
 
 jmp $
 
-%include 'utils/print.asm'
+%include 'utils/print_16.asm'
 %include 'utils/disk_load.asm'
 
 BOOT_DRIVE:
