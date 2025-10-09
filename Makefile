@@ -5,7 +5,7 @@ all: run
 run: build/boot.bin
 	qemu-system-i386 -fda build/boot.bin
 
-build/boot.bin:boot/boot.asm utils/print_16.asm
+build/boot.bin:boot/boot.asm utils/*
 	@mkdir -p build
 	nasm -f bin boot/boot.asm -o build/boot.bin
 
