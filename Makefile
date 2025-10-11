@@ -1,7 +1,7 @@
 # Define source directories and object files
 C_SOURCES := $(shell find kernel drivers -name '*.c')
-OBJECTS := $(patsubst %.c, build/%.o, $(C_SOURCES))
-OBJECTS += build/kernel_entry.o
+C_OBJECTS := $(patsubst %.c, build/%.o, $(C_SOURCES))
+ENTRY_OBJECT := build/kernel_entry.o
 
 # GCC and Linker flags
 CFLAGS := -ffreestanding -m32 -c
@@ -17,9 +17,9 @@ run: os-img
 os-img: build/boot.bin build/kernel.bin
 	cat build/boot.bin build/kernel.bin > os-img
 
-# Link the kernel binary using the LDFLAGS
-build/kernel.bin: $(OBJECTS)
-	x86_64-elf-ld $(LDFLAGS) -o build/kernel.bin $(OBJECTS)
+# Link the kernel binary
+build/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS)
+	x86_64-elf-ld $(LDFLAGS) -o $@ $^
 
 # Compile C source files using the CFLAGS
 build/%.o: %.c
@@ -32,9 +32,9 @@ build/boot.bin: boot/boot.asm utils/*.asm
 	nasm -f bin boot/boot.asm -o build/boot.bin
 
 # Assemble the 32-bit kernel entry point
-build/kernel_entry.o: kernel/kernel_entry.asm
-	@mkdir -p build
-	nasm -f elf32 kernel/kernel_entry.asm -o build/kernel_entry.o
+$(ENTRY_OBJECT): kernel/kernel_entry.asm
+	@mkdir -p $(dir $@)
+	nasm -f elf32 $< -o $@
 
 # Clean up build artifacts
 clean:
