@@ -1,9 +1,8 @@
-void some_fun(){
-  
-}
+#include "../drivers/screen/screen.h"
 
-void main() {
-  char * video_memory = (char*) 0xb8000;
-  *video_memory = 'X';
-  some_fun();
+void main()
+{
+  clear_screen();
+  char * data = "Hello World";
+  print(data);
 }
