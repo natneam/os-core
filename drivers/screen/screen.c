@@ -1,5 +1,6 @@
 #include "screen.h"
-#include "../low_level.h"
+#include "../../arch/ports.h"
+#include "../../libc/memory.h"
 
 int get_screen_offset(int col, int row)
 {
@@ -28,7 +29,7 @@ void set_cursor(int offset)
 int handle_scrolling(int offset)
 {
     // check if offset is at the last position
-    if (offset == get_screen_offset(MAX_COLS - 1, MAX_ROWS - 1))
+    if (offset >= get_screen_offset(MAX_COLS - 1, MAX_ROWS - 1))
     {
 
         for (int j = 1; j < MAX_ROWS; j++)

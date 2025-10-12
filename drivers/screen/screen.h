@@ -14,6 +14,5 @@
 void clear_screen();
 void print(char* message);
 void print_at(char* message, int col, int row);
-void memory_copy(char* source, char* dest, int no_byte);
 
 #endif

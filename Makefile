@@ -1,41 +1,55 @@
-# Define source directories and object files
-C_SOURCES := $(shell find kernel drivers -name '*.c')
-C_OBJECTS := $(patsubst %.c, build/%.o, $(C_SOURCES))
-ENTRY_OBJECT := build/kernel_entry.o
+# Toolchain definition
+CC = x86_64-elf-gcc
+LD = x86_64-elf-ld
+AS = nasm
 
-# GCC and Linker flags
-CFLAGS := -ffreestanding -m32 -c
+# Directories
+C_SOURCES := $(shell find kernel drivers arch libc -name '*.c')
+C_OBJECTS := $(patsubst %.c, build/%.o, $(C_SOURCES))
+DEPS      := $(patsubst %.c, build/%.d, $(C_SOURCES))
+
+# Kernel entry object
+ENTRY_OBJECT := build/kernel/kernel_entry.o
+
+# Flags
+CFLAGS := -m32 -g -Wall -Wextra -I. -nostdlib -nostdinc -ffreestanding -fno-builtin -fno-stack-protector -MMD -MP
 LDFLAGS := -m elf_i386 -e start -Ttext 0x1000 --oformat binary
+ASFLAGS_32 := -f elf32
+ASFLAGS_16 := -f bin
+
+TARGET := os-img
 
 all: run
 
 .PHONY: all run clean
 
-run: os-img
-	qemu-system-x86_64 -fda os-img
+run: $(TARGET)
+	qemu-system-x86_64 -fda $(TARGET)
 
-os-img: build/boot.bin build/kernel.bin
-	cat build/boot.bin build/kernel.bin > os-img
+$(TARGET): build/boot.bin build/kernel.bin
+	cat build/boot.bin build/kernel.bin > $@
 
 # Link the kernel binary
 build/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS)
-	x86_64-elf-ld $(LDFLAGS) -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
-# Compile C source files using the CFLAGS
+# Include auto-generated dependency files
+-include $(DEPS)
+
+# Compile C source files
 build/%.o: %.c
 	@mkdir -p $(dir $@)
-	x86_64-elf-gcc $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Assemble the 16-bit bootloader
-build/boot.bin: boot/boot.asm utils/*.asm
-	@mkdir -p build
-	nasm -f bin boot/boot.asm -o build/boot.bin
+build/boot.bin: boot/boot.asm boot/disk_load.asm boot/print_16.asm
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS_16) $< -o $@
 
 # Assemble the 32-bit kernel entry point
-$(ENTRY_OBJECT): kernel/kernel_entry.asm
+$(ENTRY_OBJECT): kernel/kernel_entry.asm arch/GDT.asm arch/switch_to_pm.asm arch/print_32.asm
 	@mkdir -p $(dir $@)
-	nasm -f elf32 $< -o $@
+	$(AS) $(ASFLAGS_32) $< -o $@
 
-# Clean up build artifacts
 clean:
-	rm -rf build os-img
+	rm -rf build $(TARGET)
