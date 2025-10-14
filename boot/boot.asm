@@ -2,7 +2,7 @@
 [org 0x7C00]
 
 KERNEL_OFFSET equ 0x1000
-SECTORS_TO_READ equ 15
+SECTORS_TO_READ equ 32
 
 mov [BOOT_DRIVE], dl
 

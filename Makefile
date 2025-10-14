@@ -30,7 +30,7 @@ $(TARGET): build/boot.bin build/kernel.bin
 	cat build/boot.bin build/kernel.bin > $@
 
 # Link the kernel binary
-build/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS)
+build/kernel.bin: $(ENTRY_OBJECT) build/arch/idt.o $(C_OBJECTS) build/arch/interrupts.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 # Include auto-generated dependency files
@@ -48,6 +48,15 @@ build/boot.bin: boot/boot.asm boot/disk_load.asm boot/print_16.asm
 
 # Assemble the 32-bit kernel entry point
 $(ENTRY_OBJECT): kernel/kernel_entry.asm arch/GDT.asm arch/switch_to_pm.asm arch/print_32.asm
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS_32) $< -o $@
+
+# Assemble the interrupt handlers
+build/arch/interrupts.o: arch/interrupts/interrupts.asm
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS_32) $< -o $@
+
+build/arch/idt.o: arch/interrupts/idt.asm
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS_32) $< -o $@
 
