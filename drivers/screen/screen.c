@@ -73,14 +73,22 @@ void print_char(char character, int col, int row, char attribute_byte)
         offset = get_cursor();
     }
 
-    // Handle new line
-    if (character == '\n')
+    if (character == '\n') // Handle new line
     {
         int rows = offset / (2 * MAX_COLS);
         offset = get_screen_offset(79, rows);
     }
-    // Print the character to the screen
-    else
+    else if (character == '\b') // Handle Backspace
+    {
+        if (offset > 0)
+        {
+            vidmem[offset - 2] = ' ';
+            vidmem[offset - 1] = attribute_byte;
+            set_cursor(offset - 2);
+        }
+        return;
+    }
+    else // Print the character to the screen
     {
         vidmem[offset] = character;
         vidmem[offset + 1] = attribute_byte;
@@ -114,6 +122,31 @@ void print_at(char *message, int col, int row)
 void print(char *message)
 {
     print_at(message, -1, -1);
+}
+
+void print_int(int number)
+{
+    char buffer[32];
+    int i = 0;
+    if (number == 0)
+    {
+        print_char('0', -1, -1, WHITE_ON_BLACK);
+        return;
+    }
+    if (number < 0)
+    {
+        print_char('-', -1, -1, WHITE_ON_BLACK);
+        number = -number;
+    }
+    while (number > 0)
+    {
+        buffer[i++] = (number % 10) + '0';
+        number /= 10;
+    }
+    for (int j = i - 1; j >= 0; j--)
+    {
+        print_char(buffer[j], -1, -1, WHITE_ON_BLACK);
+    }
 }
 
 void clear_screen()
