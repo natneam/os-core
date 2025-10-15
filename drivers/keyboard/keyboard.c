@@ -1,6 +1,5 @@
 #include "keyboard.h"
 #include "../../arch/ports.h"
-#include "../screen/screen.h"
 
 // US QWERTY keyboard scan code map
 static const char scancode_map[128] = {
@@ -40,6 +39,10 @@ static const char scancode_map[128] = {
     0, /* All other keys are undefined */
 };
 
+char buffer[256];
+int buffer_head = 0;
+int buffer_tail = 0;
+
 void keyboard_init()
 {
     unsigned char current_mask = port_byte_in(0x21);
@@ -51,8 +54,18 @@ void handle_keyboard_interrupt()
     unsigned char scancode = port_byte_in(KEYBOARD_DATA_PORT);
     if ((scancode & 0x80) == 0) { // Key press
         if (scancode_map[scancode] != 0) {
-            char msg[2] = {scancode_map[scancode], '\0'};
-            print(msg);
+            buffer[buffer_head] = scancode_map[scancode];
+            buffer_head = (buffer_head + 1) % sizeof(buffer);
         }
     }
+}
+
+char getchar()
+{
+    while (buffer_head == buffer_tail) {
+        // Wait for a key press
+    }
+    char c = buffer[buffer_tail];
+    buffer_tail = (buffer_tail + 1) % sizeof(buffer);
+    return c;
 }

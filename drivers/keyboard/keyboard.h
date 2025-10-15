@@ -5,5 +5,6 @@
 
 void keyboard_init();
 void handle_keyboard_interrupt();
+char getchar();
 
 #endif
