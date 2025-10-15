@@ -2,6 +2,8 @@
 
 Welcome to os-core! This project is an educational operating system for the x86 architecture, built from scratch. It documents the journey from a simple 16-bit bootloader to a functional 32-bit protected-mode kernel with basic driver support and interrupt handling.
 
+![Kernel Demo](https://natneam.github.io/kernel-at-work.gif)
+
 ## Features
 
 *   **16-bit Real Mode Bootloader:** Loads the kernel from a floppy disk image.
