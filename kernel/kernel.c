@@ -1,6 +1,7 @@
 #include "../arch/interrupts/idt.h"
 #include "../drivers/screen/screen.h"
 #include "../drivers/keyboard/keyboard.h"
+#include "../drivers/timer/timer.h"
 
 void main()
 {
@@ -9,6 +10,9 @@ void main()
 
   idt_init();
   print("IDT and PIC initialized.\n");
+
+  timer_init(100);
+  print("Timer initialized to 100Hz (IRQ0 unmasked).\n");
 
   keyboard_init();
   print("Keyboard initialized (IRQ1 unmasked).\n");

@@ -7,12 +7,17 @@
 #define PIC_EOI		0x20
 #define KEYBOARD_DATA_PORT 0x60
 
+volatile unsigned int timer_ticks = 0;
+
 
 void interrupt_handler(struct registers_t* regs) {
     switch (regs->int_no)
     {
     case 0:
         print("DIV by 0");
+        break;
+    case 32:
+        timer_ticks++;
         break;
     case 33:
         handle_keyboard_interrupt();
