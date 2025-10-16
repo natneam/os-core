@@ -1,5 +1,6 @@
 #include "keyboard.h"
 #include "../../arch/ports.h"
+#include "../../arch/interrupts/pic.h"
 
 // US QWERTY keyboard scan code map
 static const char scancode_map[128] = {
@@ -45,8 +46,7 @@ int buffer_tail = 0;
 
 void keyboard_init()
 {
-    unsigned char current_mask = port_byte_in(0x21);
-    port_byte_out(0x21, current_mask & 0xFD);
+    pic_unmask_irq(1);
 }
 
 void handle_keyboard_interrupt()
