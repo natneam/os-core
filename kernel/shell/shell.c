@@ -1,6 +1,8 @@
 #include "../../drivers/screen/screen.h"
 #include "../../drivers/keyboard/keyboard.h"
 #include "../../libc/string.h"
+#include "../time/time.h"
+
 #include "shell.h"
 
 #define MAX_COMMAND_BUFFER_SIZE 256
@@ -8,21 +10,41 @@
 char cmd_buffer[MAX_COMMAND_BUFFER_SIZE];
 int buffer_idx = 0;
 
-void process_command(char *command)
+void process_command(char *buffer)
 {
-    if (strcmp(command, "clear") == 0)
+    // preprocess the command buffer
+    unsigned int command_end = 0;
+
+    while (buffer[command_end] != '\0' && buffer[command_end] != ' ')
+    {
+        command_end++;
+    }
+
+    buffer[command_end] = '\0';
+    char *arg = &(buffer[command_end + 1]);
+
+    if (strcmp(buffer, "clear") == 0)
     {
         clear_screen();
     }
-    else if (strcmp(command, "ticks") == 0)
+    else if (strcmp(buffer, "ticks") == 0)
     {
         print("System ticks: ");
         print_int(timer_ticks);
         print("\n");
     }
+    else if (strcmp(buffer, "sleep") == 0)
+    {
+        int ms = atoi(arg);
+        print("waiting for ");
+        print_int(ms / 1000);
+        print(" seconds\n");
+        sleep(ms);
+        print("DONE\n");
+    }
     else
     {
-        print(command);
+        print(buffer);
         print(" is not a valid command");
         print("\n");
     }
@@ -30,7 +52,7 @@ void process_command(char *command)
 
 void draw_shell_prompt()
 {
-    print(">\0");
+    print(">");
 }
 
 void shell()
@@ -53,9 +75,10 @@ void shell()
         }
         else if (received_char == '\b')
         {
-            buffer_idx--;
-            buffer_idx = buffer_idx < 0 ? 0 : buffer_idx;
-            print(str);
+            if (buffer_idx > 0){
+                buffer_idx--;
+                print(str);
+            }
         }
         else
         {
