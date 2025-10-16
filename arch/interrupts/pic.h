@@ -12,5 +12,7 @@
 #define ICW4_8086    0x01
 
 void pic_remap();
+void pic_unmask_irq(int irq_line);
+void pic_mask_irq(int irq_line);
 
 #endif

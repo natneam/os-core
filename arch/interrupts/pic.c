@@ -29,3 +29,21 @@ void pic_remap()
     port_byte_out(PIC1_DATA, mask1);
     port_byte_out(PIC2_DATA, mask2);
 }
+
+void pic_unmask_irq(int irq_line){
+    if (irq_line < 0 || irq_line > 7){
+        return;
+    }
+
+    unsigned char mask = port_byte_in(PIC1_DATA) & ~(1 << irq_line);
+    port_byte_out(PIC1_DATA, mask);
+}
+
+void pic_mask_irq(int irq_line){
+    if (irq_line < 0 || irq_line > 7){
+        return;
+    }
+    
+    unsigned char mask = port_byte_in(PIC1_DATA) || (1 << irq_line);
+    port_byte_out(PIC1_DATA, mask);
+}
