@@ -44,6 +44,6 @@ void pic_mask_irq(int irq_line){
         return;
     }
     
-    unsigned char mask = port_byte_in(PIC1_DATA) || (1 << irq_line);
+    unsigned char mask = port_byte_in(PIC1_DATA) | (1 << irq_line);
     port_byte_out(PIC1_DATA, mask);
 }
