@@ -1,21 +1,24 @@
 # os-core: A Simple 32-bit x86 Operating System
 
-Welcome to os-core! This project is an educational operating system for the x86 architecture, built from scratch. It documents the journey from a simple 16-bit bootloader to a functional 32-bit protected-mode kernel with basic driver support and interrupt handling.
+Welcome to os-core! This project is an educational operating system for the x86 architecture, built from scratch. It documents the journey from a simple 16-bit bootloader to a functional 32-bit kernel running on the industry-standard GRUB bootloader.
 
 ![Kernel Demo](https://natneam.github.io/kernel-at-work.gif)
 
 ## Features
 
-*   **16-bit Real Mode Bootloader:** Loads the kernel from a floppy disk image.
-*   **32-bit Protected Mode:** Switches the CPU from 16-bit real mode to 32-bit protected mode.
-*   **Global Descriptor Table (GDT):** Sets up segment descriptors for code and data.
+*   **GRUB/Multiboot Compliant:** Boots from a standard ISO using the GRUB bootloader and the Multiboot v1 specification.
+*   **Memory Map Awareness:** Parses the memory map provided by GRUB to understand the physical memory layout of the machine.
+*   **32-bit Protected Mode:** The kernel runs entirely in 32-bit protected mode.
+*   **Global Descriptor Table (GDT):** Sets up its own segment descriptors for kernel code and data.
 *   **Interrupt Handling:**
-    *   **Interrupt Descriptor Table (IDT):** Manages hardware and software interrupts.
-    *   **PIC Remapping:** Remaps the Programmable Interrupt Controller to avoid conflicts with CPU exceptions.
+    *   **Interrupt Descriptor Table (IDT):** Manages hardware and software interrupts, including CPU exceptions.
+    *   **PIC Remapping:** Remaps the Programmable Interrupt Controller to avoid conflicts.
+*   **System Timer (PIT):** Uses the Programmable Interval Timer to provide a steady system tick.
 *   **Basic I/O Drivers:**
     *   **Screen Driver:** For printing text, clearing the screen, and handling scrolling.
-    *   **Keyboard Driver:** For reading character input from the keyboard.
-*   **Simple C Library:** Includes a basic `memory_copy` function.
+    *   **Keyboard Driver:** For reading character input via a circular buffer.
+*   **Simple Interactive Shell:** A command-line interface with support for basic commands and arguments (e.g., `clear`, `ticks`, `sleep <ms>`).
+*   **Basic C Library:** Includes essential functions like `strcmp`, `atoi`, and `memory_copy`.
 
 ## Getting Started
 
@@ -23,9 +26,10 @@ Welcome to os-core! This project is an educational operating system for the x86 
 
 To build and run this OS, you will need the following tools:
 
-*   A cross-compiler toolchain for `x86_64-elf`.
-*   `nasm` (The Netwide Assembler)
-*   `qemu-system-x86_64` for emulation.
+*   A cross-compiler toolchain for `i686-elf` or `x86_64-elf`.
+*   The `grub-mkrescue` utility (part of the GRUB toolchain).
+*   `nasm` (The Netwide Assembler).
+*   `qemu-system-i386` or `qemu-system-x86_64` for emulation.
 
 ### Building and Running
 
@@ -33,7 +37,8 @@ To build and run this OS, you will need the following tools:
     ```bash
     make
     ```
-    This command compiles the source files, creates the `os-img` floppy disk image, and launches QEMU to run the operating system automatically.
+    This command compiles the source files, creates a bootable `os-img.iso` using GRUB, and launches QEMU to run the operating system automatically.
+
 2.  **Clean up build files:**
     ```bash
     make clean
@@ -45,35 +50,39 @@ To build and run this OS, you will need the following tools:
 ```
 .
 ├── Makefile              # Build script for the project
-├── arch                  # Architecture-specific code (x86)
+├── arch/                 # Architecture-specific code (x86)
 │   ├── GDT.asm
-│   ├── interrupts
-│   ├── ports.c
-│   └── ...
-├── boot                  # 16-bit bootloader code
-│   ├── boot.asm
-│   └── ...
-├── drivers               # Device drivers
-│   ├── keyboard
-│   └── screen
-├── kernel                # The main OS kernel
-│   ├── kernel.c
-│   └── kernel_entry.asm
-└── libc                  # A basic C library implementation
-    └── memory.c
+│   ├── interrupts/
+│   └── ports.c
+├── boot/                 # (Historical) Original 16-bit bootloader code
+├── drivers/              # Device drivers (screen, keyboard, timer)
+├── kernel/               # The main OS kernel
+│   ├── kernel.c          # Main kernel entry and initialization
+│   ├── kernel_entry.asm  # 32-bit entry point with Multiboot header
+│   ├── shell/            # Interactive shell subsystem
+│   ├── time/             # Time-related functions (e.g., sleep)
+│   └── utils/            # Kernel utilities (panic, boot validation)
+└── libc/                 # A basic C library implementation
 ```
 
-*   **`arch/`**: Contains architecture-specific code for the x86 platform, including GDT setup, interrupt handling (IDT, PIC), and port I/O.
-*   **`boot/`**: Holds the 16-bit assembly code for the bootloader. `boot.asm` is the entry point.
-*   **`drivers/`**: Contains device drivers, currently for the screen and keyboard.
-*   **`kernel/`**: The core of the operating system. `kernel_entry.asm` is the 32-bit entry point which calls `main()` in `kernel.c`.
-*   **`libc/`**: Provides basic C library functions like `memory_copy`.
-*   **`Makefile`**: Defines the build process, including compilation, assembly, and linking.
+*   **`arch/`**: Contains architecture-specific code for the i386 platform, including GDT setup, interrupt handling (IDT, PIC), and port I/O.
+*   **`boot/`**: **(Historical Archive)** This directory contains the original 16-bit assembly code for the custom bootloader. It is no longer compiled but is preserved to document the project's evolution.
+*   **`drivers/`**: Contains device drivers for the screen, keyboard, and system timer (PIT).
+*   **`kernel/`**: The core of the operating system.
+    *   `kernel_entry.asm` is the 32-bit entry point, which contains the Multiboot header and calls `main()`.
+    *   `kernel.c` contains the `main()` function, which initializes all kernel subsystems.
+    *   The `shell/`, `time/`, and `utils/` subdirectories organize the kernel into logical modules.
+*   **`libc/`**: Provides basic C library functions.
+*   **`Makefile`**: Defines the entire build process, from compilation and assembly to creating the final bootable ISO image with GRUB.
 
-## How it Works
+## How It Works
 
-1.  **Booting:** The BIOS loads `boot.asm` into memory and executes it. The bootloader then loads the kernel from the disk into memory at address `0x1000`.
-2.  **Protected Mode:** The bootloader switches the CPU into 32-bit protected mode and jumps to the kernel's 32-bit entry point (`kernel_entry.asm`).
-3.  **Kernel Initialization:** The kernel entry code sets up the stack and calls the `main` function in `kernel.c`.
-4.  **Driver and Interrupt Initialization:** The `main` function initializes the screen, sets up the IDT and PIC, and enables keyboard interrupts.
-5.  **User Interaction:** The kernel enters a loop, echoing any typed characters to the screen.
+The OS boot process has evolved from its original custom bootloader to a more standard, robust architecture.
+
+1.  **Booting (GRUB):** The system boots from a bootable ISO image. The GRUB bootloader locates the kernel ELF file (`/boot/kernel.elf`) within the ISO.
+2.  **Protected Mode & Kernel Entry:** GRUB switches the CPU to 32-bit protected mode, sets up a temporary GDT, and loads the kernel into memory at address `0x100000`. It then jumps to the kernel's `start` label, passing a pointer to the Multiboot information structure in the `EBX` register.
+3.  **Kernel Initialization:**
+    *   The assembly entry point (`kernel_entry.asm`) sets up a stack and loads the kernel's own GDT.
+    *   It then calls the `main` function in `kernel.c`, passing the Multiboot structure pointer.
+4.  **Driver and Subsystem Initialization:** The `main` function validates the Multiboot information, then initializes all core services: Interrupt Descriptor Table (IDT), Programmable Interrupt Controller (PIC), and device drivers.
+5.  **Interactive Shell:** Once initialization is complete, the kernel enables interrupts (`sti`) and launches a simple interactive shell, which waits for and processes user commands.
