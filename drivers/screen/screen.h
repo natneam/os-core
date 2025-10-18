@@ -15,5 +15,6 @@ void clear_screen();
 void print(char* message);
 void print_at(char* message, int col, int row);
 void print_int(int num);
+void print_hex_ll(unsigned long long n);
 
 #endif

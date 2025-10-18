@@ -149,6 +149,23 @@ void print_int(int number)
     }
 }
 
+void print_hex_ll(unsigned long long n) {
+    if (n == 0) {
+        print("0x0");
+        return;
+    }
+    char buf[17];
+    buf[16] = '\0';
+    int i = 15;
+    print("0x");
+    while (n > 0) {
+        unsigned int digit = n % 16;
+        buf[i--] = (digit < 10) ? ('0' + digit) : ('A' + digit - 10);
+        n /= 16;
+    }
+    print(&buf[i + 1]);
+}
+
 void clear_screen()
 {
     for (int row = 0; row < MAX_ROWS; row++)
