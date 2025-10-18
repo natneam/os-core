@@ -1,3 +1,14 @@
+; =============================================================================
+; DEPRECATED - HISTORICAL REFERENCE ONLY
+; =============================================================================
+; This file was part of the original 16-bit bootloader and is no longer
+; used in the current GRUB/Multiboot-based build. It is preserved here for
+; educational and historical purposes to show the transition from a custom
+; bootloader to a standard one.
+;
+; The functionality of this file has been replaced by the GRUB bootloader.
+; =============================================================================
+
 [bits 16]
 
 switch_to_pm:
