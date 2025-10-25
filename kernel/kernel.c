@@ -4,6 +4,7 @@
 #include "../drivers/timer/timer.h"
 #include "utils/utils.h"
 #include "shell/shell.h"
+#include "memory/pmm.h"
 
 #define TIMER_FREQUENCY 100
 
@@ -18,6 +19,8 @@ void main(multiboot_info_t *mbd, unsigned int magic)
   timer_init(TIMER_FREQUENCY);
 
   keyboard_init();
+
+  pmm_init(mbd);
 
   multiboot_print_memory_map(mbd);
 

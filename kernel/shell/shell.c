@@ -2,6 +2,7 @@
 #include "../../drivers/keyboard/keyboard.h"
 #include "../../libc/string.h"
 #include "../time/time.h"
+#include "../memory/pmm.h"
 
 #include "shell.h"
 
@@ -42,6 +43,28 @@ void process_command(char *buffer)
         sleep(ms);
         print("DONE\n");
     }
+    else if (strcmp(buffer, "testpmm") == 0)
+    {
+        print("--- PMM Test ---\n");
+        void *p1 = pmm_alloc_page();
+        print("Allocated p1: ");
+        print_hex_ll((unsigned long long)p1);
+        print("\n");
+
+        void *p2 = pmm_alloc_page();
+        print("Allocated p2: ");
+        print_hex_ll((unsigned long long)p2);
+        print("\n");
+
+        print("Freeing p1...\n");
+        pmm_free_page(p1);
+
+        void *p3 = pmm_alloc_page();
+        print("Allocated p3: ");
+        print_hex_ll((unsigned long long)p3);
+        print("\n");
+        print("----------------\n");
+    }
     else
     {
         print(buffer);
@@ -75,7 +98,8 @@ void shell()
         }
         else if (received_char == '\b')
         {
-            if (buffer_idx > 0){
+            if (buffer_idx > 0)
+            {
                 buffer_idx--;
                 print(str);
             }
