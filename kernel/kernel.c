@@ -5,6 +5,7 @@
 #include "utils/utils.h"
 #include "shell/shell.h"
 #include "memory/pmm.h"
+#include "memory/vmm.h"
 
 #define TIMER_FREQUENCY 100
 
@@ -12,7 +13,9 @@ void main(multiboot_info_t *mbd, unsigned int magic)
 {
   multiboot_validate(mbd, magic);
 
-  // clear_screen();
+  pmm_init(mbd);
+
+  vmm_init();
 
   idt_init();
 
@@ -20,13 +23,10 @@ void main(multiboot_info_t *mbd, unsigned int magic)
 
   keyboard_init();
 
-  pmm_init(mbd);
-
-  multiboot_print_memory_map(mbd);
+  clear_screen();
 
   __asm__ __volatile__("sti");
 
-  // Simple shell
   shell();
 
   while (1)
