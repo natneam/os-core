@@ -6,6 +6,7 @@
 #include "shell/shell.h"
 #include "memory/pmm.h"
 #include "memory/vmm.h"
+#include "memory/heap.h"
 
 #define TIMER_FREQUENCY 100
 
@@ -16,6 +17,8 @@ void main(multiboot_info_t *mbd, unsigned int magic)
   pmm_init(mbd);
 
   vmm_init();
+
+  kheap_init();
 
   idt_init();
 

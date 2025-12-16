@@ -3,6 +3,7 @@
 #include "../../libc/string.h"
 #include "../time/time.h"
 #include "../memory/pmm.h"
+#include "../memory/heap.h"
 
 #include "shell.h"
 
@@ -64,6 +65,22 @@ void process_command(char *buffer)
         print_hex_ll((unsigned long long)p3);
         print("\n");
         print("----------------\n");
+    } else if (strcmp(buffer, "testheap") == 0)
+    {
+        print("Allocating a string...\n");
+        char* str = (char*)kmalloc(10);
+        strcpy(str, "Hello!");
+        print("String: "); print(str); print("\n");
+        
+        print("Allocating an int...\n");
+        int* num = (int*)kmalloc(sizeof(int));
+        *num = 12345;
+        print("Int: "); print_int(*num); print("\n");
+
+        print("Freeing...\n");
+        kfree(str);
+        kfree(num);
+        print("Heap test done.\n");
     }
     else
     {
