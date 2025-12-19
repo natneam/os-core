@@ -14,11 +14,21 @@ Welcome to os-core! This project is an educational operating system for the x86 
     *   **Interrupt Descriptor Table (IDT):** Manages hardware and software interrupts, including CPU exceptions.
     *   **PIC Remapping:** Remaps the Programmable Interrupt Controller to avoid conflicts.
 *   **System Timer (PIT):** Uses the Programmable Interval Timer to provide a steady system tick.
+*   **Memory Management:**
+    *   **Physical Memory Manager (PMM):** Manages the allocation and deallocation of physical memory pages.
+    *   **Virtual Memory Manager (VMM):** Handles virtual memory mapping and paging.
+    *   **Kernel Heap:** Provides dynamic memory allocation through `kmalloc()` and `kfree()` functions.
 *   **Basic I/O Drivers:**
     *   **Screen Driver:** For printing text, clearing the screen, and handling scrolling.
     *   **Keyboard Driver:** For reading character input via a circular buffer.
-*   **Simple Interactive Shell:** A command-line interface with support for basic commands and arguments (e.g., `clear`, `ticks`, `sleep <ms>`).
-*   **Basic C Library:** Includes essential functions like `strcmp`, `atoi`, and `memory_copy`.
+    *   **Timer Driver:** Uses the Programmable Interval Timer (PIT) for system timing.
+*   **Simple Interactive Shell:** A command-line interface with support for various commands:
+    *   `clear`: Clear the screen
+    *   `ticks`: Display system timer ticks
+    *   `sleep <ms>`: Sleep for a specified number of milliseconds
+    *   `testpmm`: Test physical memory manager allocation and deallocation
+    *   `testheap`: Test kernel heap memory allocation and deallocation
+*   **C Library:** Includes essential string and memory functions: `strcmp()`, `strcpy()`, `atoi()`, and memory manipulation utilities.
 
 ## Getting Started
 
@@ -59,6 +69,11 @@ To build and run this OS, you will need the following tools:
 ├── kernel/               # The main OS kernel
 │   ├── kernel.c          # Main kernel entry and initialization
 │   ├── kernel_entry.asm  # 32-bit entry point with Multiboot header
+│   ├── boot/             # Boot-related headers (e.g., multiboot)
+│   ├── memory/           # Memory management subsystems
+│   │   ├── pmm.c         # Physical memory manager
+│   │   ├── vmm.c         # Virtual memory manager
+│   │   ├── heap.c        # Kernel heap allocator
 │   ├── shell/            # Interactive shell subsystem
 │   ├── time/             # Time-related functions (e.g., sleep)
 │   └── utils/            # Kernel utilities (panic, boot validation)
@@ -71,6 +86,7 @@ To build and run this OS, you will need the following tools:
 *   **`kernel/`**: The core of the operating system.
     *   `kernel_entry.asm` is the 32-bit entry point, which contains the Multiboot header and calls `main()`.
     *   `kernel.c` contains the `main()` function, which initializes all kernel subsystems.
+    *   The `memory/` subdirectory includes the Physical Memory Manager (PMM), Virtual Memory Manager (VMM), and Kernel Heap allocator.
     *   The `shell/`, `time/`, and `utils/` subdirectories organize the kernel into logical modules.
 *   **`libc/`**: Provides basic C library functions.
 *   **`Makefile`**: Defines the entire build process, from compilation and assembly to creating the final bootable ISO image with GRUB.
@@ -84,5 +100,9 @@ The OS boot process has evolved from its original custom bootloader to a more st
 3.  **Kernel Initialization:**
     *   The assembly entry point (`kernel_entry.asm`) sets up a stack and loads the kernel's own GDT.
     *   It then calls the `main` function in `kernel.c`, passing the Multiboot structure pointer.
-4.  **Driver and Subsystem Initialization:** The `main` function validates the Multiboot information, then initializes all core services: Interrupt Descriptor Table (IDT), Programmable Interrupt Controller (PIC), and device drivers.
-5.  **Interactive Shell:** Once initialization is complete, the kernel enables interrupts (`sti`) and launches a simple interactive shell, which waits for and processes user commands.
+4.  **Memory System Initialization:** The `main` function initializes memory management subsystems:
+    *   **PMM (Physical Memory Manager):** Initializes the physical page allocator using the memory map from GRUB.
+    *   **VMM (Virtual Memory Manager):** Sets up virtual memory paging.
+    *   **Kernel Heap:** Initializes the dynamic memory allocator (`kmalloc`/`kfree`).
+5.  **Driver and Interrupt Initialization:** Initializes the Interrupt Descriptor Table (IDT), Programmable Interrupt Controller (PIC), and device drivers.
+6.  **Interactive Shell:** Once initialization is complete, the kernel enables interrupts and launches a simple interactive shell, which waits for and processes user commands.
